@@ -75,6 +75,7 @@ XIAOMI_TYPE_DICT = {
     0x18E3: "ZX1",
     0x11C2: "SV40",
     0x3F0F: "RS1BB",
+    0x38BB: "PTX_YK1_QMIMB",
 }
 
 # Structured objects for data conversions
@@ -959,6 +960,45 @@ def obj4e0e(xobj, device_type):
     return result
 
 
+def obj4a0c(xobj, device_type):
+    """Single Press"""
+    if device_type == "PTX_YK1_QMIMB":
+        _LOGGER.debug("12")
+        result = {
+            "one btn switch": "toggle",
+            "button switch": "single press",
+        }
+    else:
+        result = {}
+    return result
+
+
+def obj4a0d(xobj, device_type):
+    """Double Press"""
+    if device_type == "PTX_YK1_QMIMB":
+        _LOGGER.debug("12")
+        result = {
+            "one btn switch": "toggle",
+            "button switch": "double press",
+        }
+    else:
+        result = {}
+    return result
+
+
+def obj4a0e(xobj, device_type):
+    """Long Press"""
+    if device_type == "PTX_YK1_QMIMB":
+        _LOGGER.debug("12")
+        result = {
+            "one btn switch": "toggle",
+            "button switch": "long press",
+        }
+    else:
+        result = {}
+    return result
+
+
 def obj4e16(xobj):
     """Bed occupancy"""
     event = xobj[0]
@@ -1065,6 +1105,9 @@ xiaomi_dataobject_dict = {
     0x4818: obj4818,
     0x4a01: obj4a01,
     0x4a08: obj4a08,
+    0x4a0c: obj4a0c,
+    0x4a0d: obj4a0d,
+    0x4a0e: obj4a0e,
     0x4a0f: obj4a0f,
     0x4a12: obj4a12,
     0x4a13: obj4a13,
@@ -1267,12 +1310,20 @@ def parse_xiaomi(self, data: bytes, mac: str):
                 _LOGGER.debug("Invalid payload data length, payload: %s", payload.hex())
                 break
             dobject = payload[payload_start + 3:next_start]
-            if dobject and obj_length != 0 or hex(obj_typecode) in ["0x4e0c", "0x4e0d", "0x4e0e"]:
+            _LOGGER.debug("sinfo %s", sinfo)
+            _LOGGER.debug("payload.hex %s", payload.hex())
+            _LOGGER.debug("obj_length %d", obj_length)
+            _LOGGER.debug("obj_typecode %s", hex(obj_typecode))
+            if dobject and obj_length != 0 or hex(obj_typecode) in ["0x4e0c", "0x4e0d", "0x4e0e", "0x4a0c", "0x4a0d", "0x4a0e"]:
+                _LOGGER.debug("1")
                 resfunc = xiaomi_dataobject_dict.get(obj_typecode, None)
                 if resfunc:
-                    if hex(obj_typecode) in ["0x8", "0x100e", "0x1001", "0xf", "0xb", "0x4e0c", "0x4e0d", "0x4e0e"]:
+                    _LOGGER.debug("2")
+                    if hex(obj_typecode) in ["0x8", "0x100e", "0x1001", "0xf", "0xb", "0x4e0c", "0x4e0d", "0x4e0e", "0x4a0c", "0x4a0d", "0x4a0e"]:
+                        _LOGGER.debug("3")
                         result.update(resfunc(dobject, device_type))
                     else:
+                        _LOGGER.debug("4")
                         result.update(resfunc(dobject))
                 else:
                     if self.report_unknown == "Xiaomi":

@@ -1037,3 +1037,30 @@ class TestXiaomi:
         assert sensor_msg["one btn switch"] == "toggle"
         assert sensor_msg["button switch"] == "long press"
         assert sensor_msg["rssi"] == -64
+
+    def test_PTX_YK1_QMIMB(self):
+        """Test Xiaomi parser for PTX_YK1_QMIMB."""
+        self.aeskeys = {}
+        data_string = "d6be898e0022b26a1a38c1a4020106181695fe5859bb3812b26a1a38c1a4e45d69160000d7770104e2bdbd"
+        data = bytes(bytearray.fromhex(data_string))
+
+        aeskey = "6fb3f0c214eef4f7ad78467d9aa5fc16"
+
+        is_ext_packet = True if data[3] == 0x0D else False
+        mac = (data[8 if is_ext_packet else 7:14 if is_ext_packet else 13])[::-1]
+        mac_address = mac.hex()
+        p_mac = bytes.fromhex(mac_address.replace(":", "").lower())
+        p_key = bytes.fromhex(aeskey.lower())
+        self.aeskeys[p_mac] = p_key
+        # pylint: disable=unused-variable
+        ble_parser = BleParser(aeskeys=self.aeskeys)
+        sensor_msg, tracker_msg = ble_parser.parse_raw_data(data)
+
+        assert sensor_msg["firmware"] == "Xiaomi (MiBeacon V5 encrypted)"
+        assert sensor_msg["type"] == "PTX_YK1_QMIMB"
+        assert sensor_msg["mac"] == "A4C1381A6AB2"
+        assert sensor_msg["packet"] == 3
+        assert sensor_msg["data"]
+        assert sensor_msg["one btn switch"] == "toggle"
+        assert sensor_msg["button switch"] == "single press"
+        assert sensor_msg["rssi"] == -64
